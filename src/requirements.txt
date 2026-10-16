@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+pydantic>=2
+redis
+httpx
+pyyaml
+scikit-learn
+joblib
+python-multipart
+sse-starlette
