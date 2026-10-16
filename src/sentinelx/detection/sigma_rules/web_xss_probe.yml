@@ -1,0 +1,20 @@
+title: Web XSS probe
+id: da16bcb7-3290-46e5-af0f-0a7b34fb1245
+description: Detects cross-site scripting probe strings in requested URLs.
+status: experimental
+author: SentinelX
+date: 2026-10-16
+logsource:
+  category: web
+  product: nginx
+detection:
+  selection:
+    cs-uri-stem|contains:
+      - '<script'
+      - 'javascript:'
+      - 'onerror='
+      - '<img'
+  condition: selection
+level: medium
+tags:
+  - attack.t1190

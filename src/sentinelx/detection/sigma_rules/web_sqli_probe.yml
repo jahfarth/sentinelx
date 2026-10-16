@@ -1,0 +1,23 @@
+title: Web SQL injection probe
+id: 8770540d-54a4-4abb-a29f-ccf2e28eda53
+description: Detects SQL injection probe strings in requested URLs.
+status: experimental
+author: SentinelX
+date: 2026-10-16
+logsource:
+  category: web
+  product: apache
+detection:
+  selection:
+    cs-uri-stem|contains:
+      - 'union select'
+      - 'union%20select'
+      - "' or '1'='1"
+      - 'information_schema'
+      - '-- '
+      - ';drop table'
+      - 'benchmark('
+  condition: selection
+level: high
+tags:
+  - attack.t1190

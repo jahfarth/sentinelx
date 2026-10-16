@@ -1,0 +1,18 @@
+title: Web path traversal probe
+id: 3d67650c-4d08-4de9-845f-cd8c11d1bce9
+description: Detects directory traversal probe strings in requested URLs.
+status: experimental
+author: SentinelX
+date: 2026-10-16
+logsource:
+  category: web
+detection:
+  selection:
+    cs-uri-stem|contains:
+      - '../'
+      - '..\\'
+      - '%2e%2e'
+  condition: selection
+level: medium
+tags:
+  - attack.t1190

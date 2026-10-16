@@ -1,0 +1,16 @@
+title: Windows new user account created (4720)
+id: 2966f7e8-0dce-4b80-8de9-9233d0d7e339
+description: Detects creation of a new Windows user account (Security EventID 4720).
+status: experimental
+author: SentinelX
+date: 2026-10-16
+logsource:
+  category: authentication
+  product: windows
+detection:
+  selection:
+    EventID: 4720
+  condition: selection
+level: medium
+tags:
+  - attack.t1078
