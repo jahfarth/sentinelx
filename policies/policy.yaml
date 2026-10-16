@@ -1,0 +1,40 @@
+# SentinelX automated response policy.
+#
+# Each rule has a `match` section (lists; every present key must match the
+# alert) and an `actions` list. Supported action types:
+#   - block:    drop the alert's public src_ip via iptables for `duration_s`
+#   - slack:    post to SLACK_WEBHOOK_URL
+#   - telegram: send via TELEGRAM_BOT_TOKEN to TELEGRAM_CHAT_ID
+#
+# Rules are evaluated in order; every matching rule's actions run.
+
+rules:
+  - name: block-critical-attackers
+    match:
+      severity: [critical]
+      status: [new]
+    actions:
+      - type: block
+        duration_s: 7200
+      - type: slack
+      - type: telegram
+
+  - name: notify-high-severity
+    match:
+      severity: [high]
+      status: [new]
+    actions:
+      - type: slack
+
+  - name: notify-brute-force
+    match:
+      rule_id: [SX-BRUTE-FORCE, ml-anomaly]
+      severity: [high, critical]
+    actions:
+      - type: slack
+      - type: telegram
+
+  - name: low-severity-log-only
+    match:
+      severity: [low, medium]
+    actions: []
