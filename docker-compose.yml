@@ -1,0 +1,108 @@
+# SentinelX — local dev/prod orchestration.
+#
+# Core stack:
+#   docker compose up -d            # postgres, redis, api, worker, dashboard
+#
+# Lab profile (intentionally vulnerable target, ATTACK LAB ONLY):
+#   docker compose --profile lab up -d target
+#
+# The environment is loaded from .env (see .env.example). Never commit .env.
+
+name: sentinelx
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: sentinelx-postgres
+    environment:
+      POSTGRES_USER: sentinelx
+      POSTGRES_PASSWORD: sentinelx
+      POSTGRES_DB: sentinelx
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinelx -d sentinelx"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: sentinelx-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    container_name: sentinelx-api
+    env_file:
+      - .env
+    environment:
+      # Sensible defaults if .env is absent; override via .env for real values.
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://sentinelx:sentinelx@postgres:5432/sentinelx}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      SENTINELX_INTEL_MOCK: ${SENTINELX_INTEL_MOCK:-1}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+    container_name: sentinelx-worker
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://sentinelx:sentinelx@postgres:5432/sentinelx}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      # Dry-run by default: automated response actions are logged, not executed.
+      SENTINELX_DRY_RUN: ${SENTINELX_DRY_RUN:-1}
+      SENTINELX_INTEL_MOCK: ${SENTINELX_INTEL_MOCK:-1}
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    container_name: sentinelx-dashboard
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
+  # Lab-only intentionally vulnerable target for the attack lab (see lab/).
+  # NOT started by default: use `docker compose --profile lab up -d target`.
+  target:
+    build:
+      context: ./lab/target
+    container_name: sentinelx-lab-target
+    profiles: ["lab"]
+    ports:
+      - "5000:5000"
+      - "2222:22"
+    restart: "no"
+
+volumes:
+  pgdata:
