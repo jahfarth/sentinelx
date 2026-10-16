@@ -1,0 +1,18 @@
+# SentinelX shipper agent example config.
+# Copy to agent.yml, adjust paths, then run:
+#   python -m sentinelx.agent --config agent.yml
+
+api_url: http://localhost:8000
+batch_size: 100
+batch_interval_s: 5
+# host: myhost   # defaults to the machine hostname
+
+files:
+  - path: /var/log/auth.log
+    source: auth
+  - path: /var/log/syslog
+    source: syslog
+  - path: /var/log/nginx/access.log
+    source: nginx
+  - path: /var/log/apache2/access.log
+    source: apache
