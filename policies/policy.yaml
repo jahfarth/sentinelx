@@ -29,7 +29,7 @@ rules:
   - name: notify-brute-force
     match:
       rule_id: [SX-BRUTE-FORCE, ml-anomaly]
-      severity: [high, critical]
+      severity: [medium, high, critical]
     actions:
       - type: slack
       - type: telegram
