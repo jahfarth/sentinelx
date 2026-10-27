@@ -80,7 +80,8 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
-
+    volumes:
+      - ./models:/app/models:ro
   dashboard:
     build:
       context: .
